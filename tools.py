@@ -2,14 +2,11 @@
 import os
 import sys
 import json
+import re
 import copy
 
-#-App Globals----------------------------------------------------
-
-
-
 #----------------------------------------------------------------
-class table:
+class destinations:
   #--class globals---------------------
   curPath = os.path.dirname(os.path.abspath(__file__))
   dataFileName = 'destinations.json'
@@ -55,13 +52,16 @@ class table:
   ]
 
   #------------------------------------
-  def __init__(self):
+  def __init__(self, id=None):
     
     self.tableData = []
     self.curRow = {}
 
     self.data_file_check()
     self.data_file_load()
+
+    if id:
+      self.table_row_load_by_id(id)
 
   #------------------------------------
   def data_file_check(self):
@@ -207,5 +207,34 @@ class table:
   #------------------------------------
 
 
+
+#----------------------------------------------------------------
+
+class containers:
+  #------------------------------------
+  def __init__(self):
+    import docker
+    self.dockerCli = docker.from_env()
+
+  #------------------------------------
+  def containers_list(self):
+    containerAry = []
+    containerObjList = self.dockerCli.containers.list(all=True)
+    for container in containerObjList:
+      conObj = {
+        "id": container.id,
+        "name": container.name,
+        "status": container.status
+      }
+      try:
+        conObj["image"] = re.search("'(.*?)'", str(container.image)).group(1)
+      except:
+        conObj["image"] = str(container.image)
+
+      containerAry.append(conObj)
+
+    return containerAry
+
+  #------------------------------------
 
 #----------------------------------------------------------------
