@@ -149,6 +149,60 @@ def api_destinations_delete(id):
   #--------------------- 
   return jsonify(resObj)
 
+
+#---------------------------------------------
+@app.route('/api/containers', methods=["GET"])
+def api_containers_get():
+  
+  resObj = {
+    "path": request.path,
+    "method": request.method,
+    "status": 200,
+    "message": ""
+  }
+  
+  myCont = containers()
+  try:
+    resObj["data"] = myCont.containers_list()
+  except Exception as e:
+    resObj["status"] = 500
+    resObj["message"] = "Faild to get list of containers"
+    return jsonify(resObj), 500
+
+  #--------------------- 
+  return jsonify(resObj)
+
+
+#---------------------------------------------
+@app.route('/api/container/<id>', methods=["POST"])
+def api_container_action_post(id):
+  
+  resObj = {
+    "path": request.path,
+    "method": request.method,
+    "status": 200,
+    "message": ""
+  }
+  
+  postData = request.json
+  myCont = containers()
+  actMap = {
+    "start": myCont.container_start,
+    "stop": myCont.container_stop
+  }
+  
+  try:
+    actMap[postData["action"]](id)
+  except Exception as e:
+    print(e)
+    resObj["status"] = 500
+    resObj["message"] = "Faild to get list of containers"
+    return jsonify(resObj), 500
+
+  #--------------------- 
+  return jsonify(resObj)
+
+
 #-App Runner-------------------------------------------------------
 if __name__ == "__main__":
   app.run(host="0.0.0.0", port=5000)

@@ -242,5 +242,15 @@ class containers:
     return containerAry
 
   #------------------------------------
+  def container_start(self, id):
+    curContainer = self.dockerCli.containers.get(id)
+    curContainer.start()
+    
+  #------------------------------------
+  def container_stop(self, id):
+    curContainer = self.dockerCli.containers.get(id)
+    curContainer.stop()
+
+  #------------------------------------
 
 #----------------------------------------------------------------
