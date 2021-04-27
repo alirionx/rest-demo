@@ -1,9 +1,8 @@
 #-Module Imports---------------------------------------------------
-import os, sys
-import json 
+import os, sys, json 
 
 from flask import Flask, request, session, redirect, jsonify 
-from flask_cors import CORS 
+from flask_cors import CORS # https://developer.mozilla.org/de/docs/Web/HTTP/CORS
 
 from tools import destinations, containers
 

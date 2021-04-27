@@ -1,1 +1,506 @@
-<h2>Hallo Welt</h2>
+<!DOCTYPE html>
+<head>
+  <title>A Demo-WebUI for a Rest API by DQ</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+  <div id="nav">
+    <div class="headBlock">
+      <div class="hl">{{ title }}</div>
+      <div class="menu">
+        <div v-for="(opt, idx) in menu" :key="idx" v-bind:class="{ udl: activeComp==opt.comp }" @click="opt.func">{{opt.txt}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="destinations">
+    <!--div v-if="show"-->
+    <div>
+      <div class="pageHl">{{ title }}</div>
+      <table class="stdTable">
+        <thead>
+          <tr>
+            <th v-for="(col, idx) in defi" :key="idx">{{col.hl}}</th>
+            <th>action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(row, idx) in data" :key="idx">
+            <td v-for="(col, idx2) in defi" :key="idx2">{{row[col.col]}}</td>
+            <td>
+              <button @click="set_edit(idx)">edit</button>
+              <button @click="call_delete(idx)">delete</button>
+            </td>
+          </tr>
+          <tr>
+            <td :colspan="defi.length"></td>
+            <td>
+              <button>add</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="stdForm" v-if="editRow!=null">
+        <div class="box">
+          <div class="hl">
+            Edit: {{editRow.name}}
+          </div>
+          
+          <form v-on:submit.prevent="submit_edit">
+          
+          <div v-for="(col, idx) in defi" :key="idx">
+            <div class="iptHl">{{col.hl}}</div>
+            <input v-if="col.typ=='text'" type="text" :required="col.req" v-model="editRow[col.col]" /> 
+            <input v-if="col.typ=='number'" type="number" :required="col.req" v-model="editRow[col.col]" /> 
+            <select v-if="col.typ=='select'" type="dropdown" :required="col.req" v-model="editRow[col.col]" >
+              <option value=""></option>
+              <option v-for="opt in col.opts" :key="opt" :value="opt">{{opt}}</option>
+            </select> 
+          </div>
+          <div class="btnFrame">
+            <button type="submit">submit</button>
+            <button type="button" @click="reset_edit(true)">cancel</button>
+          </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="stdForm" v-if="confirmMsg!=null">
+        <div class="box">
+          <div class="hl">
+            Confirm: {{confirmMsg}}
+          </div>
+          <div class="btnFrame">
+            <button @click="confirmFw">ok</button>
+            <button type="button" @click="reset_confirm">cancel</button>
+          </div>
+          </form>
+        </div>
+      </div>
+        
+    </div>
+  </div>
+
+  <div id="containers">
+    <div v-if="show">
+      <h2>{{title}}</h2>
+    </div>
+  </div>
+
+</body>
+</html>
+
+<script>
+//-Globals------------------------------------------------
+var apiBaseUrl = "http://rest-demo.app-scape.de:5000/api"
+
+
+//--------------------------------------------------------
+var navObj = new Vue({
+  el: '#nav',
+  data(){
+    return{
+      title: 'A Demo-WebUI for a Rest API by DQ',
+      activeComp: "destinations",
+      menu:[
+        {
+          comp: "destinations",
+          txt: "Destinations",
+          func: ()=>{ this.activeComp = "destinations"; this.set_hash(); }
+        },
+        {
+          comp: "containers",
+          txt: "Containers",
+          func: ()=>{ this.activeComp = "containers"; this.set_hash(); }
+        }
+      ]
+    }
+  },
+  methods:{
+    set_hash(){
+      location.hash = this.activeComp;
+    },
+  },
+  created: function(){
+    this.set_hash();
+  }
+})
+
+//--------------------------------------------------------
+var destObj = new Vue({
+  el: '#destinations',
+  data(){
+    return{
+      title: 'Holiday Destinations',
+      show: false,
+      defi: [
+        {
+          col: "name",
+          hl: "Name",
+          typ: "text",
+          req: true
+        },
+        {
+          col: "continent",
+          hl: "Continent",
+          typ: "select",
+          req: false,
+          opts:["Asia", "Australia", "Africa", "Europe", "North America", "South America" ]
+        },
+        {
+          col: "country",
+          hl: "Country",
+          typ: "text",
+          req: true
+        },
+        {
+          col: "language",
+          hl: "Language",
+          typ: "text",
+          req: false
+        },
+        {
+          col: "hint",
+          hl: "Hint",
+          typ: "text",
+          req: false
+        },
+        {
+          col: "year",
+          hl: "Year",
+          typ: "number",
+          req: false
+        }
+      ],
+      data: [],
+      editRow: null,
+      confirmMsg: null,
+      confirmFw: ()=>{},
+    }
+  },
+  methods:{
+    chk_hash(){
+      if( location.hash == '#destinations'){
+        this.show = true;
+      }
+      else{
+        this.show = false;
+      }
+    },
+
+    call_data(){
+      axios.get(apiBaseUrl+'/destinations')
+        .then((response)=> {
+          console.log(response.data);
+          this.data = response.data.data;
+          
+          //this.editRow = this.data[1]
+        
+        })
+        .catch((err)=> {
+          // handle error
+          console.log(err.response);
+        })
+    },
+    set_edit(idx){
+      this.editRow = this.data[idx];
+    },
+    reset_edit(call=false){
+      this.editRow = null;
+      if(call){
+        this.call_data();
+      }
+    },
+    submit_edit(){
+      const headers = {'Content-Type': 'application/json'}
+      axios.put(apiBaseUrl+'/destinations/'+this.editRow.id, this.editRow, {headers})
+      .then((response)=> {
+        console.log(response.data);
+      })
+      .catch((err)=> {
+        console.log(err.response);
+        this.call_data();
+      })
+      .finally(()=>{
+        this.reset_edit();
+      })
+    },
+
+    call_delete(idx){
+      this.confirmMsg = "do you really want to delete entry: "+this.data[idx].name+" ?";
+      this.confirmFw = ()=>{this.do_delete(this.data[idx].id)}; 
+    },
+    reset_confirm(){
+      this.confirmMsg = null;
+      this.confirmFw = ()=>{}; 
+    },
+    do_delete(id){
+      axios.delete(apiBaseUrl+'/destinations/'+id)
+      .then((response)=> {
+        console.log(response.data);
+        this.call_data();
+      })
+      .catch((err)=> {
+        console.log(err.response);
+      })
+      .finally(()=>{
+        this.reset_confirm();
+      })
+    }
+
+  },
+  created: function(){
+    var fwFunc = ()=>{this.chk_hash();}
+    window.addEventListener('hashchange', function() {
+      fwFunc();
+    });
+  },
+  mounted: function(){
+    this.call_data();
+  }
+})
+
+//--------------------------------------------------------
+var containersObj = new Vue({
+  el: '#containers',
+  data(){
+    return{
+      title: 'My Containers',
+      defi: [],
+      data: [],
+      show: false
+    }
+  },
+  methods:{
+    chk_hash(){
+      if( location.hash == '#containers'){
+        this.show = true;
+      }
+      else{
+        this.show = false;
+      }
+    }
+  },
+  created: function(){
+    var fwFunc = ()=>{this.chk_hash();}
+    window.addEventListener('hashchange', function() {
+      fwFunc();
+    });
+  }
+})
+
+//--------------------------------------------------------
+
+
+</script>
+
+
+<style>
+body{
+  padding-top:110px;
+  font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+.headBlock{
+  position:fixed;
+  left:0px;
+  top:0px;
+  min-height: 100px;
+  width: 100%;
+  background-color: rgb(32, 45, 71);
+  color:#fff;
+  text-align: center;
+}
+.headBlock .hl{
+  font-size: 22px;
+  line-height: 100px;
+  padding-right: 10px;
+}
+.headBlock .menu{
+  position: absolute;
+  right: 30px;
+  bottom: 4px;
+  font-size: 14px;
+  *font-weight: bold;
+  color: #fff;
+}
+.headBlock .menu div{
+  display: inline-block;
+  min-width: 120px;
+  line-height: 18px;
+  border-right:2px solid #fff;
+  cursor: pointer;
+}
+.headBlock .menu div:first-child{
+  border-left:2px solid #fff;
+}
+.headBlock .menu div:hover{
+  text-decoration: underline;
+}
+.headBlock .menu .udl{
+  text-decoration: underline;
+}
+
+.pageHl{
+  display: table;
+  margin:auto;
+  padding:12px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+}
+
+.stdTable{
+  margin: 10px auto 20px auto;
+  min-width: 800px;
+}
+
+.stdTable tr:last-child td{
+  border:none;
+}
+.stdTable tr:last-child td button{
+  margin-top:10px;
+  width:80px;
+}
+
+.stdTable th{
+  background-color: rgb(36, 59, 105);
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  padding:5px;
+  border: 1px solid #333;
+}
+.stdTable th:last-child{
+  width:130px;
+}
+.stdTable td{
+  background-color: #fff;
+  color: #000;
+  font-size: 14px;
+  padding:6px;
+  border: 1px solid #aaa;
+}
+.stdTable td:last-child{
+  width:130px;
+  text-align: center;
+}
+.stdTable button{
+  min-width: 55px;
+  padding:2px 6px 2px 6px;
+  margin: -4px 2px -4px 2px;
+  color: #fff;
+  background-color: rgb(71, 18, 18);
+  border: 1px solid #000;
+  border-radius: 3px;
+  font-size: 12px;
+  *font-weight: 600;
+  cursor: pointer;
+}
+.stdTable button:hover{
+  background-color: rgb(110, 26, 26);
+}
+
+
+.stdForm{
+  width: 100%;
+  height: 100vh;
+  text-align: center;
+  *padding-top:3vh;
+  position: fixed;
+  top:0px;
+  left:0px;
+  background-color: rgba(20,20,20,0.7);
+  z-index: 10;
+}
+.stdForm .box{
+  display: table;
+  margin: 14vh auto auto auto;
+  min-width:550px;
+  min-height:100px;
+  text-align:left;
+  padding:20px 20px 18px 20px;
+  border: 1px solid #444;
+  *border-radius: 12px;
+  box-shadow: 0px 8px 14px #222;
+  background-color:#f5f5f5;
+}
+.stdForm .hl{
+  background-color: rgb(36, 59, 105);
+  color:#fff;
+  text-align:center;
+  font-size:14px;
+  font-weight:bold;
+  padding:6px;
+  *border-radius: 6px;
+  border: 1px solid rgb(2, 22, 2);
+  margin:auto auto 6px auto;
+}
+
+.stdForm .iptHl{
+  text-align:left;
+  font-size:13px;
+  padding:12px 0 4px 0;
+  margin-left:6px;
+  
+}
+.stdForm input[type=text],input[type=number]{
+  text-align: left;
+  font-size:15px;
+  color: #000;
+  padding:6px;
+  margin: 0px 0px 8px 6px;
+  border: 0.5px solid #777;
+  background-color:#fff;
+}
+.stdForm input[type=text]:focus,input[type=number]:focus{
+  background-color:rgb(247, 249, 255);
+}
+.stdForm input[type=text][disabled]{
+  background-color:#f6f6f6;
+}
+
+.stdForm input[type=text]{
+  width: 95%;
+}
+.stdForm input[type=number]{
+  min-width:38%;
+}
+
+.stdForm select[type=dropdown]{
+  text-align: left;
+  font-size:15px;
+  color: #000;
+  padding:6px;
+  margin: 0px 0px 8px 6px;
+  border: 0.5px solid #777;
+  background-color:#fff;
+  min-width:40%;
+}
+
+
+
+
+.btnFrame{
+  text-align: center;
+  padding:26px 0px 0px 0px;
+}
+.btnFrame button{
+  min-width: 120px;
+  padding: 4px;
+  margin: 6px;
+  color: #fff;
+  background-color: rgb(71, 18, 18);
+  border: 1px solid #000;
+  border-radius: 3px;
+  font-size: 15px;
+  *font-weight: 600;
+  cursor: pointer;
+}
+.btnFrame button:hover{
+  background-color: rgb(110, 26, 26);
+}
+
+</style>

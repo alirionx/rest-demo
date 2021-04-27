@@ -172,6 +172,10 @@ class destinations:
     if not colChk:
       raise Exception("Invalid column name / key: '%s'" %key)
     
+    if self.dataModel[defiIdx]["type"] == int:
+      try: val = int(val)
+      except: inf="never mind"
+
     if type(val) != self.dataModel[defiIdx]["type"]:
       raise Exception("Invalid value format for: '%s'" %key)
     
@@ -179,6 +183,8 @@ class destinations:
 
   #------------------------------------
   def set_multiple_col(self, dic):
+    if "id" in dic:
+      del dic["id"]
     for key, val in dic.items():
       self.set_one_col(key, val)
   
