@@ -17,6 +17,7 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 #-Serve the frontend-----------------------------------------------
 @app.route('/', methods=["GET"])
 def app_home():
+  #return "<h2>Hallo TechSession<h2>"
   return app.send_static_file("index.html")
 
 

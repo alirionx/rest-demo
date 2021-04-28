@@ -17,7 +17,10 @@
 
   <div id="destinations">
     <div v-if="show">
-      <div class="pageHl">{{ title }}</div>
+      <div class="pageHl">
+        {{ title }}
+        <span class="refresh" @click="call_data">(refresh)</span>
+      </div>
       <table class="stdTable">
         <thead>
           <tr>
@@ -85,7 +88,10 @@
 
   <div id="containers">
     <div v-if="show">
-      <div class="pageHl">{{ title }}</div>
+      <div class="pageHl">
+        {{ title }}
+        <span class="refresh" @click="call_data">(refresh)</span>
+      </div>
       <table class="stdTable">
         <thead>
           <tr>
@@ -145,7 +151,7 @@ var navObj = new Vue({
   data(){
     return{
       title: 'A Demo-WebUI for a Rest API by DQ',
-      activeComp: "",
+      activeComp: "destinations",
       menu:[
         {
           comp: "destinations",
@@ -165,7 +171,7 @@ var navObj = new Vue({
       location.hash = this.activeComp;
     },
   },
-  created: function(){
+  mounted: function(){
     this.set_hash();
   }
 })
@@ -631,6 +637,15 @@ body{
 }
 .btnFrame button:hover{
   background-color: rgb(110, 26, 26);
+}
+
+.refresh{
+  color: rgb(110, 26, 26);
+  font-size: 14px;
+  cursor: pointer;
+}
+.refresh:hover{
+  text-decoration: underline;
 }
 
 .loaderBlocker{

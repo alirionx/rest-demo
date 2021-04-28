@@ -1,0 +1,19 @@
+1. Präsentation
+
+2. Destination Table Class erklären und zeigen:
+   - Object aus Class erstellen
+   - Methoden zeigen 
+   - zwei Rows erstellen und Speicher (Exceptions auslösen)
+   - eine Row laden und printen
+   - eine Row löschen
+
+3. Flask API bauen
+   - Static Content in Browser zeigen
+   - API Welcome in Postman zeigen (mit Console/Network F12 in Browser)
+   - Routes bauen
+   - GET und POST in Postman zeigen
+
+4. HTML File verschicken 
+   - FrontEnd/BackEnd erklären
+   - Jeden eine Destination eintragen lassen
+   - Docker zeigen (evtl. Container erstellen)
